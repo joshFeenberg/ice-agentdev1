@@ -26,19 +26,30 @@ function TextApp() {
      * Called whenever the "Send" button is pressed.
      * @param {Event} e default form event; used to prevent from reloading the page.
      */
-    function handleSend(e) {
+    async function handleSend(e) {
         e?.preventDefault();
         const input = inputRef.current.value?.trim();
         setIsLoading(true);
         if(input) {
             addMessage(Constants.Roles.User, input);
             inputRef.current.value = "";
+            const resp = await fetch("https://cs571api.cs.wisc.edu/rest/s26/hw10/completions", {
+                method: "POST",
+                headers: {
+                    "X-CS571-ID": CS571.getBadgerId(),
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify([...messages, {
+                    role: Constants.Roles.User,
+                    content: input
+                }])
+            });
 
+            const data = await resp.json();
+            addMessage(Constants.Roles.Assistant, data.msg);
             // TODO Perform a POST request to the HW10 Completions API
             //      https://cs571api.cs.wisc.edu/rest/s26/hw10/completions
             //      and display the response to the user.
-            
-            addMessage(Constants.Roles.Assistant, "I'll think about that...");
         }
         setIsLoading(false);
     }
